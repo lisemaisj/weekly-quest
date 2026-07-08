@@ -244,6 +244,27 @@
   .msg-body{font-size:21px; line-height:1.45; color:var(--cream); margin:0;}
   .msg-sign{margin-top:10px; color:var(--pink); font-size:18px;}
 
+  .reflection-card{
+    width:100%;
+    display:flex; flex-direction:column; gap:10px;
+    text-align:left;
+  }
+  .reflection-label{font-family:var(--pixel); font-size:10px; color:var(--gold);}
+  .reflection-input{
+    width:100%; min-height:92px; resize:vertical;
+    background:#0a0616; border:2px solid var(--panel-edge); border-radius:4px;
+    color:var(--cream); padding:12px 14px;
+    font-size:18px;
+  }
+  .reflection-input::placeholder{color:#9fa8b5;}
+  .reflection-actions{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;}
+  .reflection-note{margin:0; font-size:15px; color:#b8aee0;}
+  .highlight-card{
+    display:none; width:100%; background:#0a0616; border:3px solid var(--pink);
+    border-radius:4px; padding:20px; text-align:left; box-shadow:0 0 20px rgba(255,143,171,0.2);
+  }
+  .highlight-card.show{display:block; animation:loot-in .4s forwards;}
+
   .progress-dots{display:flex; gap:8px;}
   .progress-dots span{width:8px; height:8px; border-radius:50%; background:var(--panel-edge);}
   .progress-dots span.active{background:var(--gold);}
@@ -296,6 +317,15 @@
         <li><span class="check">✓</span> Resisted throwing laptop</li>
         <li><span class="check">✓</span> Made it to the weekend</li>
       </ul>
+
+      <div class="reflection-card">
+        <label class="reflection-label" for="highlight-input">✦ WHAT MADE YOU SMILE THIS WEEK? ✦</label>
+        <textarea id="highlight-input" class="reflection-input" maxlength="180" rows="3" placeholder="Write a tiny highlight, a happy memory, or something that felt good this week..."></textarea>
+        <div class="reflection-actions">
+          <button class="btn-ghost btn" id="btn-save-highlight" type="button">SAVE MEMORY</button>
+          <p class="reflection-note" id="reflection-note">Your happy moment will appear in your reward card.</p>
+        </div>
+      </div>
     </div>
     <button class="btn" id="btn-to-stats">VIEW CHARACTER SHEET ▶</button>
   </section>
@@ -324,6 +354,10 @@
     <div class="chest-wrap" id="chest-wrap">
       <div class="sparkle" id="sparkle"></div>
       <button type="button" class="chest" id="chest" aria-label="Open reward chest">📦</button>
+    </div>
+    <div class="highlight-card" id="highlight-card">
+      <span class="msg-title">◆ THIS WEEK'S HIGHLIGHT ◆</span>
+      <p class="msg-body" id="highlight-display">Nothing saved yet. Add a happy memory above.</p>
     </div>
     <div class="loot-list" id="loot-list"></div>
     <div class="msg-card" id="msg-card" role="dialog" aria-live="polite" aria-label="Legendary reward message">
@@ -390,6 +424,54 @@ el('btn-press-start').addEventListener('click', () => {
   runQuestScreen();
 });
 
+/* ---------- weekly highlight ---------- */
+const highlightInput = el('highlight-input');
+const highlightNote = el('reflection-note');
+const highlightCard = el('highlight-card');
+const highlightDisplay = el('highlight-display');
+const saveHighlightBtn = el('btn-save-highlight');
+
+function saveHighlight(){
+  const value = highlightInput.value.trim();
+  if(!value){
+    highlightNote.textContent = 'Write a tiny happy memory to save it.';
+    return;
+  }
+  try{ localStorage.setItem('weeklyQuestHighlight', value); }catch(err){}
+  highlightNote.textContent = 'Saved — your happy memory is ready.';
+  highlightDisplay.textContent = value;
+  highlightCard.classList.add('show');
+  sfxCoin();
+}
+
+function loadHighlight(){
+  try{
+    const saved = localStorage.getItem('weeklyQuestHighlight');
+    if(saved){
+      highlightInput.value = saved;
+      highlightDisplay.textContent = saved;
+      highlightCard.classList.add('show');
+      highlightNote.textContent = 'Saved — your happy memory is ready.';
+    }
+  }catch(err){}
+}
+
+highlightInput.addEventListener('input', () => {
+  const value = highlightInput.value.trim();
+  if(value){
+    try{ localStorage.setItem('weeklyQuestHighlight', value); }catch(err){}
+    highlightDisplay.textContent = value;
+    highlightCard.classList.add('show');
+    highlightNote.textContent = 'Draft saved automatically.';
+  } else {
+    highlightDisplay.textContent = 'Nothing saved yet. Add a happy memory above.';
+    highlightCard.classList.remove('show');
+    highlightNote.textContent = 'Your happy moment will appear in your reward card.';
+  }
+});
+saveHighlightBtn.addEventListener('click', saveHighlight);
+loadHighlight();
+
 /* ---------- quest / xp screen ---------- */
 let questRan = false;
 function runQuestScreen(){
@@ -433,10 +515,10 @@ el('btn-to-chest').addEventListener('click', () => { sfxClick(); showScreen('scr
 /* ---------- character stats ---------- */
 const STATS = [
   {name:'Resilience', value:95},
-  {name:'Coffee Dependency', value:100},
+  {name:'Social Battery', value:32},
   {name:'Reliability', value:99},
   {name:'Thoughtfulness', value:95},
-  {name:'Sleep Schedule', value:12},
+  {name:'Problem Solving', value:100},
   {name:'Vibes', value:88}
 ];
 let statsRan = false;
