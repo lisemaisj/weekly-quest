@@ -264,10 +264,6 @@
     border-radius:4px; padding:20px; text-align:left; box-shadow:0 0 20px rgba(255,143,171,0.2);
   }
   .highlight-card.show{display:block; animation:loot-in .4s forwards;}
-  .proud-card{border-color:var(--green); box-shadow:0 0 20px rgba(107,203,119,0.16);}
-  .proud-list{list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:8px;}
-  .proud-item{background:rgba(107,203,119,0.12); border:1px solid rgba(107,203,119,0.35); border-radius:4px; padding:10px 12px; color:var(--cream); font-size:17px;}
-  .proud-empty{color:#b8aee0; font-size:16px; margin:0;}
 
   .progress-dots{display:flex; gap:8px;}
   .progress-dots span{width:8px; height:8px; border-radius:50%; background:var(--panel-edge);}
@@ -330,15 +326,6 @@
           <p class="reflection-note" id="reflection-note">Your happy moment will appear in your reward card.</p>
         </div>
       </div>
-
-      <div class="reflection-card">
-        <label class="reflection-label" for="proud-input">✦ THINGS YOU'RE PROUD OF ✦</label>
-        <textarea id="proud-input" class="reflection-input" maxlength="180" rows="3" placeholder="Write one thing you did well this week..."></textarea>
-        <div class="reflection-actions">
-          <button class="btn-ghost btn" id="btn-save-proud" type="button">SAVE PRIDE</button>
-          <p class="reflection-note" id="proud-note">Your proud moments will appear in a special reward section.</p>
-        </div>
-      </div>
     </div>
     <button class="btn" id="btn-to-stats">VIEW CHARACTER SHEET ▶</button>
   </section>
@@ -371,12 +358,6 @@
     <div class="highlight-card" id="highlight-card">
       <span class="msg-title">◆ THIS WEEK'S HIGHLIGHT ◆</span>
       <p class="msg-body" id="highlight-display">Nothing saved yet. Add a happy memory above.</p>
-    </div>
-    <div class="highlight-card proud-card" id="proud-card">
-      <span class="msg-title">◆ THINGS YOU'RE PROUD OF ◆</span>
-      <ul class="proud-list" id="proud-list">
-        <li class="proud-empty">No proud moments saved yet.</li>
-      </ul>
     </div>
     <div class="loot-list" id="loot-list"></div>
     <div class="msg-card" id="msg-card" role="dialog" aria-live="polite" aria-label="Legendary reward message">
@@ -450,11 +431,6 @@ const highlightCard = el('highlight-card');
 const highlightDisplay = el('highlight-display');
 const saveHighlightBtn = el('btn-save-highlight');
 
-const proudInput = el('proud-input');
-const proudNote = el('proud-note');
-const proudList = el('proud-list');
-const saveProudBtn = el('btn-save-proud');
-
 function saveHighlight(){
   const value = highlightInput.value.trim();
   if(!value){
@@ -494,52 +470,7 @@ highlightInput.addEventListener('input', () => {
   }
 });
 saveHighlightBtn.addEventListener('click', saveHighlight);
-
-function getStoredProudItems(){
-  try{
-    const saved = localStorage.getItem('weeklyQuestProudItems');
-    if(!saved) return [];
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed.filter(Boolean).map(item => String(item).trim()) : [];
-  }catch(err){
-    return [];
-  }
-}
-
-function renderProudItems(){
-  const items = getStoredProudItems();
-  if(!items.length){
-    proudList.innerHTML = '<li class="proud-empty">No proud moments saved yet.</li>';
-    return;
-  }
-  proudList.innerHTML = items.map(item => `<li class="proud-item">• ${item}</li>`).join('');
-}
-
-function saveProudItem(){
-  const value = proudInput.value.trim();
-  if(!value){
-    proudNote.textContent = 'Write something you are proud of before saving it.';
-    return;
-  }
-
-  const items = getStoredProudItems();
-  items.push(value);
-  try{ localStorage.setItem('weeklyQuestProudItems', JSON.stringify(items)); }catch(err){}
-  proudInput.value = '';
-  proudNote.textContent = 'Saved — it has been added to your proud moments.';
-  renderProudItems();
-  sfxCoin();
-}
-
-function loadProudItems(){
-  proudInput.value = '';
-  renderProudItems();
-  proudNote.textContent = 'Your proud moments will appear in a special reward section.';
-}
-
-saveProudBtn.addEventListener('click', saveProudItem);
 loadHighlight();
-loadProudItems();
 
 /* ---------- quest / xp screen ---------- */
 let questRan = false;
